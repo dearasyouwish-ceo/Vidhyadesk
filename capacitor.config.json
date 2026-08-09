@@ -1,0 +1,9 @@
+{
+  "appId": "com.vidyadesk.app",
+  "appName": "VidyaDesk",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}
