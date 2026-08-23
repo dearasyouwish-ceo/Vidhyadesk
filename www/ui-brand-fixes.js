@@ -1,0 +1,33 @@
+/* VidyaDesk UI cleanup: only Admin, Student and Teacher are shown on login. */
+(function(){
+  const originalAuth = window.auth;
+  window.auth = function(){
+    document.body.innerHTML = css()+`<div class="auth"><div class="authbox">
+      <div class="logo"><b>VD</b><h2>Vidhyadesk</h2><div>Complete Coaching Institute Management</div></div>
+      <div class="tabs vd-role-tabs">
+        ${[['admin','Admin'],['student','Student'],['teacher','Teacher']].map(([r,label])=>`<button class="${S.role===r?'sel':''}" onclick="S.role='${r}';auth()">${label}</button>`).join('')}
+      </div>
+      <div class="form" style="margin-top:14px">
+        <div class="field full"><label>Email</label><input id="email" type="email" placeholder="name@example.com"></div>
+        <div class="field full"><label>Password</label><input id="pass" type="password"></div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:12px" onclick="login()">Login</button>
+      <button class="btn alt" style="width:100%;margin-top:8px" onclick="register()">Create Admin Account</button>
+    </div></div>`;
+  };
+
+  const originalShell = window.shell;
+  window.shell = function(content){
+    const ms = menus[S.role] || menus.student;
+    return `<div class="top"><button onclick="drawer()">☰</button><b>Vidhyadesk</b><span></span><button onclick="location.reload()">↻</button><button onclick="logout()">↪</button></div><div class="layout"><aside><div class="brand"><strong>VD</strong><div><b>Vidhyadesk</b><small>${esc(S.institute?.name||'Education Management')}</small></div></div>${ms.map(x=>`<button class="nav ${S.page===x[0]?'on':''}" onclick="go('${x[0]}')">${x[1]}</button>`).join('')}</aside><main>${content}</main></div>`;
+  };
+
+  const style = document.createElement('style');
+  style.textContent = '.logo h2{margin:8px 0 3px}.logo b{font-size:22px!important}.vd-role-tabs{grid-template-columns:repeat(3,1fr)!important}.brand strong{font-size:15px!important;letter-spacing:.5px}';
+  document.head.appendChild(style);
+
+  // Re-render immediately so the cleaned login is visible without waiting for another navigation.
+  if (typeof S !== 'undefined') {
+    try { if (S.session) render(); else auth(); } catch (_) {}
+  }
+})();
