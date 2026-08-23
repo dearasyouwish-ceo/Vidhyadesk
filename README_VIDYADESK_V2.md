@@ -1,34 +1,42 @@
 # VidyaDesk V2
 
-VidyaDesk is being rebuilt as a mobile-first coaching institute management platform for Indian academic and competitive-exam institutes.
+VidyaDesk is a mobile-first coaching institute management platform for Indian academic and competitive-exam institutes.
 
-## V2 architecture
+## Architecture
 
-- `www/index.html` — minimal application entry point
-- `www/app.js` — modular client application shell and role-based navigation
-- `supabase_fresh_reset.sql` — destructive legacy application-schema reset; does not touch Supabase Auth internals or SMTP/email configuration
+- `www/index.html` — application entry point
+- `www/app.js` — client application shell
+- `www/*-workflow.js` — modular fee, attendance, exams, learning, portals, payroll, leads and notifications logic
+- `supabase_fresh_reset.sql` — destructive legacy application-schema reset; does not touch Supabase Auth or SMTP/email configuration
 - `supabase_schema.sql` — fresh multi-module schema with RLS foundations
-- `supabase_verification.sql` — post-reset schema/RLS verification
+- `supabase_verification.sql` — read-only post-reset verification
 
 ## Roles
 
 Owner/Admin, Teacher, Student, Parent, Employee.
 
-## Core V2 modules
+## Safe database migration
 
-Students/families, batches and fee plans, fee collection/accounting, attendance, staff/payroll/leave, exams/results, online learning/material, leads, reports, permissions and institute settings.
-
-## Important database note
-
-The reset SQL intentionally does not delete `auth.users`. Supabase Auth users must be managed through Supabase Auth administration. Existing project connectivity and email/SMTP configuration are not changed by the application schema scripts.
-
-## Deployment
-
-1. Backup any required legacy application data.
-2. Run `supabase_fresh_reset.sql` against the intended VidyaDesk Supabase project.
+1. Back up any legacy application data that must be retained.
+2. Run `supabase_fresh_reset.sql` only against the intended VidyaDesk project.
 3. Run `supabase_schema.sql`.
-4. Run `supabase_verification.sql` and confirm expected tables, RLS and helper functions.
+4. Run `supabase_verification.sql`; confirm expected tables, RLS, helper routines and zero legacy application tables.
 5. Configure the browser/client with the Supabase project URL and publishable key.
-6. Build/sync Capacitor Android as required.
+6. Build/sync Capacitor Android/iOS as required.
 
-The database scripts are intentionally separate from the frontend so the GitHub deployment can update HTML/JS and SQL independently.
+Existing Supabase Auth users are intentionally preserved. SMTP/email and project connectivity configuration are not changed by the application-schema scripts.
+
+## Production boundaries
+
+WhatsApp/SMS and biometric integrations require provider credentials/endpoints and should run server-side. The client only queues notification jobs and records attendance events; provider secrets must never be shipped in the mobile bundle.
+
+## QA checklist
+
+- Fresh schema applies cleanly.
+- Verification reports no legacy application tables.
+- RLS is enabled on tenant-owned tables.
+- Owner/teacher/student/parent permissions are tested with separate Auth identities.
+- Recurring fee generation is idempotent before production use.
+- Payment totals cannot exceed bill balance.
+- Print/PDF flows work inside Android/iOS WebView.
+- Offline mutations are queued and replayed with conflict checks.
