@@ -1,9 +1,8 @@
 /* VidyaDesk UI cleanup: only Admin, Student and Teacher are shown on login. */
 (function(){
-  const originalAuth = window.auth;
   window.auth = function(){
     document.body.innerHTML = css()+`<div class="auth"><div class="authbox">
-      <div class="logo"><b>VD</b><h2>Vidhyadesk</h2><div>Complete Coaching Institute Management</div></div>
+      <div class="logo"><div style="font-size:28px;font-weight:800">Vidhyadesk</div><div>Complete Coaching Institute Management</div></div>
       <div class="tabs vd-role-tabs">
         ${[['admin','Admin'],['student','Student'],['teacher','Teacher']].map(([r,label])=>`<button class="${S.role===r?'sel':''}" onclick="S.role='${r}';auth()">${label}</button>`).join('')}
       </div>
@@ -15,19 +14,12 @@
       <button class="btn alt" style="width:100%;margin-top:8px" onclick="register()">Create Admin Account</button>
     </div></div>`;
   };
-
-  const originalShell = window.shell;
   window.shell = function(content){
     const ms = menus[S.role] || menus.student;
-    return `<div class="top"><button onclick="drawer()">☰</button><b>Vidhyadesk</b><span></span><button onclick="location.reload()">↻</button><button onclick="logout()">↪</button></div><div class="layout"><aside><div class="brand"><strong>VD</strong><div><b>Vidhyadesk</b><small>${esc(S.institute?.name||'Education Management')}</small></div></div>${ms.map(x=>`<button class="nav ${S.page===x[0]?'on':''}" onclick="go('${x[0]}')">${x[1]}</button>`).join('')}</aside><main>${content}</main></div>`;
+    return `<div class="top"><button onclick="drawer()">☰</button><b>Vidhyadesk</b><span></span><button onclick="location.reload()">↻</button><button onclick="logout()">↪</button></div><div class="layout"><aside><div class="brand"><div style="font-weight:800;font-size:18px">Vidhyadesk</div><small>${esc(S.institute?.name||'Education Management')}</small></div>${ms.map(x=>`<button class="nav ${S.page===x[0]?'on':''}" onclick="go('${x[0]}')">${x[1]}</button>`).join('')}</aside><main>${content}</main></div>`;
   };
-
-  const style = document.createElement('style');
-  style.textContent = '.logo h2{margin:8px 0 3px}.logo b{font-size:22px!important}.vd-role-tabs{grid-template-columns:repeat(3,1fr)!important}.brand strong{font-size:15px!important;letter-spacing:.5px}';
+  const style=document.createElement('style');
+  style.textContent='.vd-role-tabs{grid-template-columns:repeat(3,1fr)!important}.logo{text-align:center}.brand{gap:8px}.brand small{display:block}';
   document.head.appendChild(style);
-
-  // Re-render immediately so the cleaned login is visible without waiting for another navigation.
-  if (typeof S !== 'undefined') {
-    try { if (S.session) render(); else auth(); } catch (_) {}
-  }
+  if(typeof S!=='undefined'){try{if(S.session)render();else auth()}catch(_){}}
 })();
