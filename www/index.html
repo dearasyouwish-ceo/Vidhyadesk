@@ -2,52 +2,1357 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
   <title>VidyaDesk</title>
+  
+  <!-- Tailwind CSS for modern, responsive styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Phosphor Icons for high-quality SVG icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Chart.js for Interactive Dashboards -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Custom Styling and Capacitor Tweaks -->
   <style>
-    :root{--navy:#12355b;--blue:#216bba;--pale:#eef6ff;--ink:#172033;--muted:#67748a;--line:#dce5f0;--green:#18804b;--orange:#a55a00;--red:#b42318}*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:var(--ink);font:16px system-ui,-apple-system,"Segoe UI",sans-serif}.app{max-width:620px;min-height:100vh;margin:auto;background:#fff}.top{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:23px 20px 19px}.top h1{font-size:25px;margin:0}.top p{margin:5px 0 0;opacity:.85;font-size:14px}.page{padding:20px 16px 94px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 13px;box-shadow:0 2px 7px #17355b0d}.hero{background:var(--pale);border-color:#cce0fa}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.module{min-height:120px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px;color:var(--ink);font:inherit;font-weight:700}.module span{display:block;font-size:27px;margin-bottom:8px}.module small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:4px}h2{font-size:21px;margin:0 0 8px}h3{font-size:17px;margin:0 0 7px}p{line-height:1.45}label{display:block;font-size:13px;font-weight:700;margin:14px 0 6px}input,textarea,select{width:100%;padding:13px;border:1px solid #bcc9d8;border-radius:10px;background:#fff;font:inherit}textarea{min-height:100px;resize:vertical}button{border:0;border-radius:10px;padding:13px 15px;background:var(--blue);color:#fff;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.secondary{background:#e8f1fb;color:#174b81}.danger{background:#fff0ef;color:var(--red)}.success{background:#e8f7ef;color:var(--green)}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.actions button{flex:1;min-width:120px}.notice{padding:12px 13px;border-radius:10px;margin:12px 0;background:#fff5dd;color:#764b00;font-size:14px}.error{background:#fff0ef;color:var(--red)}.muted{color:var(--muted);font-size:14px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.list-item{padding:14px 0;border-bottom:1px solid var(--line)}.list-item:last-child{border:0}.pill{display:inline-block;border-radius:99px;padding:4px 9px;font-size:12px;font-weight:700;background:#edf3fb;color:#265b91}.pill.pending{background:#fff2d9;color:var(--orange)}.pill.rejected{background:#fff0ef;color:var(--red)}.bottom{position:fixed;bottom:0;left:0;right:0;margin:auto;max-width:620px;background:#fff;border-top:1px solid var(--line);padding:11px 16px;display:flex;gap:10px}.bottom button{flex:1;padding:10px}.hidden{display:none!important}.code{font:bold 26px ui-monospace,monospace;letter-spacing:4px;color:var(--navy)}.count{font-size:30px;font-weight:800;color:var(--blue)}
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg-color: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --safe-area-top: env(safe-area-inset-top, 0px);
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      padding-top: var(--safe-area-top);
+      padding-bottom: var(--safe-area-bottom);
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar hiding for smooth UI */
+    ::-webkit-scrollbar { display: none; }
+    
+    /* App Layout */
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height for mobile browsers */
+      max-width: 768px;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    #main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 80px; /* Space for bottom nav */
+    }
+
+    /* Animations */
+    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { 
+      from { opacity: 0; transform: translateY(20px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+
+    /* Custom Toast Notifications */
+    #toast-container {
+      position: fixed;
+      top: calc(var(--safe-area-top) + 16px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 90%;
+      max-width: 400px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 500;
+      font-size: 0.9rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+      animation: slideDown 0.3s ease-out forwards;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideOut { to { opacity:0; transform:translateY(-20px); } }
+
+    /* Modal Styling */
+    .modal-overlay {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      padding-bottom: calc(var(--safe-area-bottom) + 12px);
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active i { font-weight: bold; }
+    
+    /* Utilities */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
-<body><main class="app"><header class="top"><h1>VidyaDesk</h1><p id="subtitle">Simple digital classroom</p></header><section class="page" id="app"></section><nav class="bottom hidden" id="bottom"></nav></main>
+<body>
+
+<div id="app-container">
+  
+  <!-- Dynamic Content Area -->
+  <main id="main-content" class="bg-slate-50 relative"></main>
+
+  <!-- Bottom Navigation (Hidden on login/auth) -->
+  <nav id="bottom-nav" class="bottom-nav hidden absolute bottom-0 w-full bg-white border-t border-slate-100 flex justify-around pt-3 px-2 z-40 transition-transform duration-300">
+    <!-- Nav items populated dynamically -->
+  </nav>
+
+</div>
+
+<!-- Global Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Global Modal Container -->
+<div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden opacity-0 transition-opacity duration-300">
+  <div id="modal-content" class="bg-white rounded-2xl w-[90%] max-w-md max-h-[85vh] overflow-y-auto p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+    <!-- Modal content goes here -->
+  </div>
+</div>
+
 <script>
-/* REPLACE these two values with the same values from your current working index.html. Never put a service_role key here. */
+// -------------------------------------------------------------
+// CONFIGURATION & SETUP
+// -------------------------------------------------------------
 const SUPABASE_URL = 'https://sanmenwzjcjbudjtdzvr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KKNQ_eK7s7nfvxDXSqRXLg_v88xBC6c';
-const db = (SUPABASE_URL.startsWith('http') && !SUPABASE_ANON_KEY.startsWith('PASTE')) ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const $ = s => document.querySelector(s); const app=$('#app'); let me=null, profile=null, activeClass=null;
-const esc = s => String(s ?? '').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-function message(text, bad=false){ return `<div class="notice ${bad?'error':''}">${esc(text)}</div>` }
-function setBottom(items=[]){ const b=$('#bottom'); b.innerHTML=items.map(x=>`<button class="secondary" onclick="${x[1]}">${x[0]}</button>`).join(''); b.classList.toggle('hidden',!items.length) }
-function busy(btn,on=true){if(btn){btn.disabled=on;btn.dataset.label??=btn.textContent;btn.textContent=on?'Please wait…':btn.dataset.label}}
-async function requireDb(){if(!db)throw Error('Add your Supabase URL and anon/publishable key at the top of index.html first.');}
-async function boot(){ try{await requireDb(); const {data:{session}}=await db.auth.getSession(); if(!session) return login(); me=session.user; await loadProfile(); profile?home():onboard(); }catch(e){ login(e.message) } }
-function login(err=''){setBottom([]);app.innerHTML=`<div class="card hero"><h2>Welcome to VidyaDesk</h2><p>Login with your email. New users will verify with an OTP code sent by email.</p></div>${err?message(err,true):''}<div class="card"><h3>Choose your role</h3><div class="grid"><button class="module" onclick="emailLogin('tutor')"><span>👨‍🏫</span>I am a Tutor<small>Create and manage classes</small></button><button class="module" onclick="emailLogin('student')"><span>👨‍🎓</span>I am a Student<small>Join your tutor's class</small></button></div></div>`}
-function emailLogin(role){ app.innerHTML=`<div class="card"><h2>${role==='tutor'?'Tutor':'Student'} login</h2><p class="muted">We will send a 6-digit OTP code to your email.</p><label>Email address</label><input id="email" type="email" inputmode="email" placeholder="you@example.com"><div class="actions"><button class="secondary" onclick="login()">Back</button><button onclick="sendOtp('${role}',this)">Send OTP</button></div></div>`; }
-async function sendOtp(role,btn){try{busy(btn);await requireDb();const email=$('#email').value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Enter a valid email address.');const {error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:true}});if(error)throw error;otpScreen(role,email)}catch(e){alert(e.message)}finally{busy(btn,false)}}
-function otpScreen(role,email){app.innerHTML=`<div class="card"><h2>Enter OTP</h2><p class="muted">OTP sent to ${esc(email)}</p><label>8-digit OTP</label><input id="otp" inputmode="numeric" maxlength="8" placeholder="12345678"><div class="actions"><button class="secondary" onclick="emailLogin('${role}')">Back</button><button onclick="verifyOtp('${role}','${email}',this)">Verify & continue</button></div></div>`}
-async function verifyOtp(role,email,btn){try{busy(btn);const token=$('#otp').value.trim();if(!/^\d{8}$/.test(token))throw Error('Enter the 8-digit OTP from your email.');const {data,error}=await db.auth.verifyOtp({email,token,type:'email'});if(error)throw error;me=data.user;await loadProfile();if(!profile)onboard(role);else home()}catch(e){alert(e.message)}finally{busy(btn,false)}}
-async function loadProfile(){const {data,error}=await db.from('profiles').select('*').eq('id',me.id).maybeSingle();if(error)throw error;profile=data}
-function onboard(role=''){setBottom([]);app.innerHTML=`<div class="card"><h2>Complete your profile</h2><label>Your name</label><input id="name" placeholder="Enter your name"><label>I am a</label><select id="role"><option value="tutor" ${role==='tutor'?'selected':''}>Tutor</option><option value="student" ${role==='student'?'selected':''}>Student</option></select><div class="actions"><button onclick="saveProfile(this)">Continue</button></div></div>`}
-async function saveProfile(btn){try{busy(btn);const full_name=$('#name').value.trim(), role=$('#role').value;if(full_name.length<2)throw Error('Please enter your name.');const {error}=await db.from('profiles').insert({id:me.id,full_name,role,phone:me.email});if(error)throw error;await loadProfile();home()}catch(e){alert(e.message)}finally{busy(btn,false)}}
-function home(){ $('#subtitle').textContent=`${profile.full_name} · ${profile.role==='tutor'?'Tutor':'Student'}`; profile.role==='tutor'?tutorHome():studentHome(); }
-async function tutorHome(){setBottom([['My Classes','tutorClasses()'],['Logout','logout()']]);const {data:classes,error}=await db.from('classes').select('*').order('created_at',{ascending:false});if(error)return fail(error);const {count}=await db.from('class_memberships').select('*',{count:'exact',head:true});const {count:pending}=await db.from('class_join_requests').select('*',{count:'exact',head:true}).eq('status','pending');app.innerHTML=`<div class="card hero"><div class="row"><div><h2>Hello, ${esc(profile.full_name)}</h2><p class="muted">Manage your classes simply.</p></div><button onclick="newClass()">+ New class</button></div></div><div class="grid"><button class="module" onclick="tutorClasses()"><span>📚</span>My Classes<small>${classes.length} class(es)</small></button><button class="module" onclick="students()"><span>👨‍🎓</span>My Students<small>${count||0} approved students</small></button><button class="module" onclick="requests()"><span>🔔</span>Join Requests<small>${pending||0} pending</small></button><button class="module" onclick="tutorClasses('material')"><span>📤</span>Send Material<small>PDF, photo, video or link</small></button><button class="module" onclick="tutorClasses('homework')"><span>📝</span>Homework<small>Give work to students</small></button><button class="module" onclick="tutorClasses('notice')"><span>📢</span>Notice<small>Send announcement</small></button></div>`}
-async function tutorClasses(next=''){setBottom([['Home','tutorHome()'],['+ New class','newClass()']]);const {data,error}=await db.from('classes').select('*').order('created_at',{ascending:false});if(error)return fail(error);app.innerHTML=`<div class="row"><h2>My Classes</h2><button onclick="newClass()">+ New</button></div>${data.length?data.map(c=>`<div class="card"><div class="row"><div><h3>${esc(c.name)}</h3><p class="muted">${esc(c.subject||'')}</p><div class="code">${esc(c.class_code)}</div></div><button onclick="openTutorClass('${c.id}','${next}')">Open</button></div></div>`).join(''):`<div class="card"><p>No class yet. Create your first class.</p></div>`}`}
-function newClass(){setBottom([['Back','tutorHome()']]);app.innerHTML=`<div class="card"><h2>Create class</h2><label>Class name</label><input id="className" placeholder="Example: Std 8 Maths"><label>Subject (optional)</label><input id="subject" placeholder="Example: Mathematics"><div class="actions"><button class="secondary" onclick="tutorHome()">Cancel</button><button onclick="createClass(this)">Create class</button></div></div>`}
-async function createClass(btn){try{busy(btn);const name=$('#className').value.trim(),subject=$('#subject').value.trim();if(name.length<2)throw Error('Enter a class name.');const {error}=await db.from('classes').insert({name,subject});if(error)throw error;tutorClasses()}catch(e){alert(e.message)}finally{busy(btn,false)}}
-async function openTutorClass(id,section=''){activeClass=id;const {data:c,error}=await db.from('classes').select('*').eq('id',id).single();if(error)return fail(error);setBottom([['Classes','tutorClasses()'],['Students','students()']]);app.innerHTML=`<div class="card hero"><h2>${esc(c.name)}</h2><p>${esc(c.subject||'')}</p><p>Student joining code</p><div class="code">${esc(c.class_code)}</div></div><div class="grid"><button class="module" onclick="requests('${id}')"><span>🔔</span>Join Requests</button><button class="module" onclick="students('${id}')"><span>👨‍🎓</span>Students</button><button class="module" onclick="compose('material','${id}')"><span>📤</span>Send Material</button><button class="module" onclick="compose('homework','${id}')"><span>📝</span>Homework</button><button class="module" onclick="compose('notice','${id}')"><span>📢</span>Notice</button></div>`;if(section)compose(section,id)}
-async function requests(classId=''){setBottom([['Home','tutorHome()'],['Classes','tutorClasses()']]);let q=db.from('class_join_requests').select('*, classes(name)').eq('status','pending').order('created_at',{ascending:false});if(classId)q=q.eq('class_id',classId);const {data,error}=await q;if(error)return fail(error);app.innerHTML=`<h2>Pending join requests</h2>${data.length?data.map(r=>`<div class="card"><h3>${esc(r.student_name)}</h3><p class="muted">✉️ ${esc(r.student_phone||'Email not available')}<br>📚 ${esc(r.classes?.name||'')}</p><div class="actions"><button class="success" onclick="decide('${r.id}','approved',this)">Approve</button><button class="danger" onclick="decide('${r.id}','rejected',this)">Reject</button></div></div>`).join(''):`<div class="card"><p>No pending requests.</p></div>`}`}
-async function decide(id,status,btn){try{busy(btn);const {error}=await db.rpc('review_join_request',{p_request_id:id,p_status:status});if(error)throw error;requests()}catch(e){alert(e.message)}finally{busy(btn,false)}}
-async function students(classId=''){setBottom([['Home','tutorHome()'],['Classes','tutorClasses()']]);let q=db.from('class_memberships').select('*, classes(name)').order('approved_at',{ascending:false});if(classId)q=q.eq('class_id',classId);const {data,error}=await q;if(error)return fail(error);app.innerHTML=`<div class="card hero"><div class="count">${data.length}</div><h2>Approved Students</h2><p class="muted">Only students you approved are shown here.</p></div><input id="search" placeholder="Search name or email" oninput="filterStudents()"><div id="studentList">${data.map(s=>`<div class="card student"><h3>${esc(s.student_name)}</h3><p class="muted">✉️ ${esc(s.student_phone||'Email not available')}<br>📚 ${esc(s.classes?.name||'')}</p></div>`).join('')||'<div class="card"><p>No approved students yet.</p></div>'}</div>`}
-function filterStudents(){const q=$('#search').value.toLowerCase();document.querySelectorAll('.student').forEach(x=>x.classList.toggle('hidden',!x.textContent.toLowerCase().includes(q)))}
-async function compose(type,classId){activeClass=classId;setBottom([['Back','openTutorClass(activeClass)']]);const label={material:'Send Material',homework:'Give Homework',notice:'Send Notice'}[type];app.innerHTML=`<div class="card"><h2>${label}</h2><label>Title</label><input id="title" placeholder="Enter title"><label>${type==='notice'?'Announcement':type==='homework'?'Homework details':'Material details'}</label><textarea id="body" placeholder="Write here"></textarea>${type==='material'?'<label>Link to PDF, photo or video (optional)</label><input id="link" type="url" placeholder="https://">':''}<div class="actions"><button onclick="publish('${type}',this)">Send to approved students</button></div></div>`}
-async function publish(type,btn){try{busy(btn);const title=$('#title').value.trim(),body=$('#body').value.trim();if(!title||!body)throw Error('Enter a title and details.');const table=type==='material'?'materials':type==='homework'?'homework':'notices';const row={class_id:activeClass,title,body};if(type==='material')row.link=$('#link').value.trim()||null;const {error}=await db.from(table).insert(row);if(error)throw error;alert('Sent successfully.');openTutorClass(activeClass)}catch(e){alert(e.message)}finally{busy(btn,false)}}
-async function studentHome(){setBottom([['My Classes','studentClasses()'],['Logout','logout()']]);const {data,error}=await db.from('class_memberships').select('*, classes(*)').order('approved_at',{ascending:false});if(error)return fail(error);const {data:pending}=await db.from('class_join_requests').select('*, classes(name)').order('created_at',{ascending:false});app.innerHTML=`<div class="card hero"><h2>Hello, ${esc(profile.full_name)}</h2><p>Join a class using the code from your tutor. Your tutor must approve the request.</p><button onclick="joinClass()">+ Join a class</button></div><div class="grid"><button class="module" onclick="studentClasses()"><span>📚</span>My Class<small>${data.length} approved class(es)</small></button><button class="module" onclick="studentFeed('materials')"><span>📂</span>Material</button><button class="module" onclick="studentFeed('homework')"><span>📝</span>Homework</button><button class="module" onclick="studentFeed('notices')"><span>📢</span>Notice</button></div>${pending?.length?`<div class="card"><h3>Join request status</h3>${pending.map(r=>`<div class="list-item">${esc(r.classes?.name||'Class')} <span class="pill ${r.status}">${esc(r.status)}</span></div>`).join('')}</div>`:''}`}
-function joinClass(){setBottom([['Home','studentHome()']]);app.innerHTML=`<div class="card"><h2>Join a class</h2><p class="muted">Enter the 6-character code your tutor gave you. Your request will be sent for approval.</p><label>Class code</label><input id="joinCode" maxlength="6" autocapitalize="characters" placeholder="AB12CD"><div class="actions"><button onclick="sendJoin(this)">Send join request</button></div></div>`}
-async function sendJoin(btn){try{busy(btn);const code=$('#joinCode').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Enter a valid 6-character class code.');const {error}=await db.rpc('request_join_by_code',{p_class_code:code});if(error)throw error;alert('Join request sent. Your tutor must approve it before you can access the class.');studentHome()}catch(e){alert(e.message)}finally{busy(btn,false)}}
-async function studentClasses(){setBottom([['Home','studentHome()'],['+ Join','joinClass()']]);const {data,error}=await db.from('class_memberships').select('*, classes(*)').order('approved_at',{ascending:false});if(error)return fail(error);app.innerHTML=`<h2>My Classes</h2>${data.length?data.map(m=>`<div class="card"><h3>${esc(m.classes.name)}</h3><p class="muted">${esc(m.classes.subject||'')}</p><button onclick="studentClass('${m.class_id}')">Open class</button></div>`).join(''):`<div class="card"><p>No approved class yet.</p></div>`}`}
-async function studentClass(id){activeClass=id;setBottom([['Classes','studentClasses()']]);const {data:c,error}=await db.from('classes').select('*').eq('id',id).single();if(error)return fail(error);app.innerHTML=`<div class="card hero"><h2>${esc(c.name)}</h2><p>${esc(c.subject||'')}</p></div><div class="grid"><button class="module" onclick="studentFeed('materials','${id}')"><span>📂</span>Material</button><button class="module" onclick="studentFeed('homework','${id}')"><span>📝</span>Homework</button><button class="module" onclick="studentFeed('notices','${id}')"><span>📢</span>Notice</button></div>`}
-async function studentFeed(table,classId=''){setBottom([['Home','studentHome()'],['My Classes','studentClasses()']]);let q=db.from(table).select('*, classes(name)').order('created_at',{ascending:false});if(classId)q=q.eq('class_id',classId);const {data,error}=await q;if(error)return fail(error);const labels={materials:'Study Material',homework:'Homework',notices:'Notices'};app.innerHTML=`<h2>${labels[table]}</h2>${data.length?data.map(x=>`<div class="card"><h3>${esc(x.title)}</h3><p>${esc(x.body)}</p><p class="muted">${esc(x.classes?.name||'')}</p>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">Open attachment</a>`:''}</div>`).join(''):`<div class="card"><p>Nothing here yet.</p></div>`}`}
-async function logout(){await db.auth.signOut();me=null;profile=null;login()}
-function fail(e){app.innerHTML=message(e.message||String(e),true)} boot();
-</script></body></html>
+const db = (SUPABASE_URL.startsWith('http')) ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// Global State
+const State = {
+  user: null,
+  profile: null,
+  currentView: 'home',
+  activeClassId: null,
+  dashboardChart: null
+};
+
+// DOM Elements
+const El = {
+  main: document.getElementById('main-content'),
+  nav: document.getElementById('bottom-nav'),
+  modalOverlay: document.getElementById('modal-container'),
+  modalContent: document.getElementById('modal-content'),
+  toasts: document.getElementById('toast-container')
+};
+
+// -------------------------------------------------------------
+// UTILITY FUNCTIONS
+// -------------------------------------------------------------
+const escapeHTML = str => String(str ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+const formatDate = dateStr => new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  const bgColors = { success: 'bg-emerald-600', error: 'bg-red-500', info: 'bg-blue-600' };
+  const icons = { success: 'ph-check-circle', error: 'ph-warning-circle', info: 'ph-info' };
+  
+  toast.className = `toast ${bgColors[type]}`;
+  toast.innerHTML = `<i class="${icons[type]} text-xl"></i> <span>${escapeHTML(message)}</span>`;
+  
+  El.toasts.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease-in forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function setBtnLoading(btnId, isLoading, originalText = '') {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (isLoading) {
+    btn.dataset.text = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="ph ph-spinner-gap animate-spin text-xl"></i>`;
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = originalText || btn.dataset.text;
+    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+  }
+}
+
+// -------------------------------------------------------------
+// MODAL SYSTEM
+// -------------------------------------------------------------
+function openModal(title, bodyHTML) {
+  El.modalContent.innerHTML = `
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-bold text-slate-800">${title}</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="ph ph-x text-xl"></i></button>
+    </div>
+    <div>${bodyHTML}</div>
+  `;
+  El.modalOverlay.classList.remove('hidden');
+  // Small delay to allow display block to apply before transition
+  requestAnimationFrame(() => {
+    El.modalOverlay.classList.remove('opacity-0');
+    El.modalContent.classList.remove('scale-95');
+  });
+}
+
+function closeModal() {
+  El.modalOverlay.classList.add('opacity-0');
+  El.modalContent.classList.add('scale-95');
+  setTimeout(() => {
+    El.modalOverlay.classList.add('hidden');
+    El.modalContent.innerHTML = '';
+  }, 300);
+}
+
+let _confirmCallback = null;
+function confirmAction(title, message, confirmText, confirmClass, callback) {
+  _confirmCallback = callback;
+  openModal(title, `
+    <div class="text-slate-600 mb-6 leading-relaxed">${escapeHTML(message)}</div>
+    <div class="flex gap-3">
+      <button onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition shadow-sm">Cancel</button>
+      <button onclick="if(_confirmCallback) _confirmCallback(); closeModal();" class="flex-1 ${confirmClass} text-white font-bold py-3 rounded-xl shadow-md transition">${escapeHTML(confirmText)}</button>
+    </div>
+  `);
+}
+
+// Navigation System
+function updateNav() {
+  if (!State.profile) {
+    El.nav.classList.add('hidden');
+    return;
+  }
+  El.nav.classList.remove('hidden');
+  
+  const isTutor = State.profile.role === 'tutor';
+  const navItems = isTutor ? [
+    { id: 'home', icon: 'ph-squares-four', label: 'Dashboard', action: 'renderDashboard()' },
+    { id: 'classes', icon: 'ph-chalkboard-teacher', label: 'Classes', action: 'renderTutorClasses()' },
+    { id: 'students', icon: 'ph-users', label: 'Students', action: 'renderTutorStudents()' },
+    { id: 'requests', icon: 'ph-bell', label: 'Requests', action: 'renderRequests()' },
+    { id: 'profile', icon: 'ph-user-circle', label: 'Profile', action: 'renderProfile()' }
+  ] : [
+    { id: 'home', icon: 'ph-squares-four', label: 'Dashboard', action: 'renderDashboard()' },
+    { id: 'classes', icon: 'ph-books', label: 'My Classes', action: 'renderStudentClasses()' },
+    { id: 'profile', icon: 'ph-user-circle', label: 'Profile', action: 'renderProfile()' }
+  ];
+
+  El.nav.innerHTML = navItems.map(item => `
+    <button onclick="${item.action}" class="nav-item flex flex-col items-center p-2 flex-1 text-slate-400 transition-colors ${State.currentView === item.id ? 'active text-blue-600' : ''}">
+      <i class="${item.icon} text-2xl mb-1"></i>
+      <span class="text-[10px] font-medium">${item.label}</span>
+    </button>
+  `).join('');
+}
+
+// -------------------------------------------------------------
+// CORE & AUTH LOGIC
+// -------------------------------------------------------------
+async function boot() {
+  if (!db) return showToast('Supabase Client missing. Check URL/Key.', 'error');
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) return renderLogin();
+    State.user = session.user;
+    await loadProfile();
+    State.profile ? renderDashboard() : renderOnboard();
+  } catch (e) {
+    renderLogin(e.message);
+  }
+}
+
+async function loadProfile() {
+  const { data, error } = await db.from('profiles').select('*').eq('id', State.user.id).maybeSingle();
+  if (error) throw error;
+  State.profile = data;
+}
+
+async function logout() {
+  await db.auth.signOut();
+  State.user = null;
+  State.profile = null;
+  if(State.dashboardChart) { State.dashboardChart.destroy(); State.dashboardChart = null; }
+  renderLogin();
+}
+
+// --- Views ---
+
+function renderLogin(err = '') {
+  State.currentView = 'login';
+  updateNav();
+  El.main.innerHTML = `
+    <div class="h-full flex flex-col justify-center px-6 slide-up pb-20">
+      <div class="text-center mb-10">
+        <div class="w-20 h-20 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-200">
+          <i class="ph ph-student text-5xl"></i>
+        </div>
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">VidyaDesk</h1>
+        <p class="text-slate-500">Your digital classroom, simplified.</p>
+      </div>
+      
+      ${err ? `<div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-6 flex items-center gap-2"><i class="ph ph-warning-circle text-lg"></i>${escapeHTML(err)}</div>` : ''}
+      
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <h3 class="font-bold text-lg mb-4 text-center">Choose your role</h3>
+        <div class="space-y-3">
+          <button onclick="renderEmailLogin('tutor')" class="w-full flex items-center p-4 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mr-4"><i class="ph ph-chalkboard-teacher"></i></div>
+            <div class="text-left">
+              <span class="block font-bold text-slate-800">I am a Tutor</span>
+              <span class="block text-xs text-slate-500">Create & manage classes</span>
+            </div>
+            <i class="ph ph-caret-right ml-auto text-slate-400"></i>
+          </button>
+          <button onclick="renderEmailLogin('student')" class="w-full flex items-center p-4 border border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition">
+            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-2xl mr-4"><i class="ph ph-backpack"></i></div>
+            <div class="text-left">
+              <span class="block font-bold text-slate-800">I am a Student</span>
+              <span class="block text-xs text-slate-500">Join classes & study</span>
+            </div>
+            <i class="ph ph-caret-right ml-auto text-slate-400"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderEmailLogin(role) {
+  El.main.innerHTML = `
+    <div class="h-full flex flex-col pt-12 px-6 slide-up">
+      <button onclick="renderLogin()" class="self-start text-slate-500 mb-8 flex items-center gap-1 font-medium"><i class="ph ph-arrow-left text-lg"></i> Back</button>
+      <h2 class="text-3xl font-extrabold text-slate-900 mb-2">${role === 'tutor' ? 'Tutor' : 'Student'} Login</h2>
+      <p class="text-slate-500 mb-8">Enter your email to receive a secure one-time passcode.</p>
+      
+      <form onsubmit="event.preventDefault(); sendOtp('${role}')" class="space-y-6">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+          <div class="relative">
+            <i class="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl"></i>
+            <input id="email" type="email" inputmode="email" required placeholder="you@example.com" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition shadow-sm text-lg">
+          </div>
+        </div>
+        <button id="btn-otp" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-blue-200">Send OTP</button>
+      </form>
+    </div>
+  `;
+}
+
+async function sendOtp(role) {
+  const email = document.getElementById('email').value.trim();
+  if (!email) return showToast('Enter valid email', 'error');
+  try {
+    setBtnLoading('btn-otp', true);
+    const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    if (error) throw error;
+    renderOtpVerify(role, email);
+    showToast('OTP sent to your email', 'success');
+  } catch (e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-otp', false);
+  }
+}
+
+function renderOtpVerify(role, email) {
+  El.main.innerHTML = `
+    <div class="h-full flex flex-col pt-12 px-6 slide-up">
+      <button onclick="renderEmailLogin('${role}')" class="self-start text-slate-500 mb-8 flex items-center gap-1 font-medium"><i class="ph ph-arrow-left text-lg"></i> Back</button>
+      <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Verify OTP</h2>
+      <p class="text-slate-500 mb-8">Enter the 8-digit code sent to <span class="font-bold text-slate-800">${escapeHTML(email)}</span></p>
+      
+      <form onsubmit="event.preventDefault(); verifyOtp('${role}', '${email}')" class="space-y-6">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Secure Code</label>
+          <input id="otp" type="text" inputmode="numeric" maxlength="8" required placeholder="• • • • • • • •" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition shadow-sm text-center text-2xl tracking-widest font-mono font-bold text-slate-800">
+        </div>
+        <button id="btn-verify" type="submit" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-slate-200">Verify & Continue</button>
+      </form>
+    </div>
+  `;
+}
+
+async function verifyOtp(role, email) {
+  const token = document.getElementById('otp').value.trim();
+  if (!token) return;
+  try {
+    setBtnLoading('btn-verify', true);
+    const { data, error } = await db.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) throw error;
+    State.user = data.user;
+    await loadProfile();
+    if (!State.profile) renderOnboard(role);
+    else renderDashboard();
+  } catch (e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-verify', false);
+  }
+}
+
+function renderOnboard(role = '') {
+  El.main.innerHTML = `
+    <div class="h-full flex flex-col pt-12 px-6 slide-up">
+      <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Complete Profile</h2>
+      <p class="text-slate-500 mb-8">Set up your account to get started.</p>
+      
+      <form onsubmit="event.preventDefault(); saveProfile()" class="space-y-5 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+          <input id="onboard-name" type="text" required placeholder="e.g. John Doe" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Role</label>
+          <select id="onboard-role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none">
+            <option value="tutor" ${role==='tutor'?'selected':''}>Tutor</option>
+            <option value="student" ${role==='student'?'selected':''}>Student</option>
+          </select>
+        </div>
+        <button id="btn-onboard" type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl transition shadow-md mt-4">Save & Enter App</button>
+      </form>
+    </div>
+  `;
+}
+
+async function saveProfile() {
+  const full_name = document.getElementById('onboard-name').value.trim();
+  const role = document.getElementById('onboard-role').value;
+  try {
+    setBtnLoading('btn-onboard', true);
+    const { error } = await db.from('profiles').insert({ id: State.user.id, full_name, role, phone: State.user.email });
+    if (error) throw error;
+    await loadProfile();
+    showToast('Profile created!', 'success');
+    renderDashboard();
+  } catch (e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-onboard', false);
+  }
+}
+
+// -------------------------------------------------------------
+// DASHBOARD LOGIC (Real-world Features)
+// -------------------------------------------------------------
+function renderDashboard() {
+  State.currentView = 'home';
+  updateNav();
+  if (State.profile.role === 'tutor') {
+    renderTutorDashboard();
+  } else {
+    renderStudentDashboard();
+  }
+}
+
+async function renderTutorDashboard() {
+  El.main.innerHTML = `
+    <div class="pt-8 px-5 pb-6 bg-gradient-to-br from-blue-900 to-blue-700 text-white rounded-b-3xl shadow-md">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <p class="text-blue-200 text-sm font-medium">Welcome back,</p>
+          <h2 class="text-2xl font-bold">${escapeHTML(State.profile.full_name)}</h2>
+        </div>
+        <div class="bg-blue-800 p-2 rounded-xl text-blue-100 border border-blue-600">
+           <i class="ph ph-chalkboard-teacher text-2xl"></i>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3" id="tutor-stats">
+        <!-- Stats loading -->
+        <div class="bg-white/10 p-4 rounded-2xl animate-pulse h-24"></div>
+        <div class="bg-white/10 p-4 rounded-2xl animate-pulse h-24"></div>
+      </div>
+    </div>
+    
+    <div class="px-5 mt-6 mb-24 slide-up">
+      <h3 class="font-bold text-slate-800 text-lg mb-4">Class Engagement Overview</h3>
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
+        <canvas id="dashboardChart" height="220"></canvas>
+      </div>
+
+      <div class="mt-6 flex justify-between items-center mb-3">
+         <h3 class="font-bold text-slate-800 text-lg">Quick Actions</h3>
+      </div>
+      <div class="grid grid-cols-4 gap-2">
+        <button onclick="renderTutorClasses()" class="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition">
+          <div class="bg-blue-50 text-blue-600 p-2.5 rounded-full mb-1.5"><i class="ph ph-chalkboard text-xl"></i></div>
+          <span class="text-[10px] font-semibold text-slate-700">Classes</span>
+        </button>
+        <button onclick="renderTutorStudents()" class="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition">
+          <div class="bg-purple-50 text-purple-600 p-2.5 rounded-full mb-1.5"><i class="ph ph-users text-xl"></i></div>
+          <span class="text-[10px] font-semibold text-slate-700">Students</span>
+        </button>
+        <button onclick="renderRequests()" class="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition">
+          <div class="bg-orange-50 text-orange-500 p-2.5 rounded-full mb-1.5"><i class="ph ph-bell-ringing text-xl"></i></div>
+          <span class="text-[10px] font-semibold text-slate-700">Requests</span>
+        </button>
+        <button onclick="showCreateClassModal()" class="flex flex-col items-center justify-center p-3 bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition">
+          <div class="bg-green-50 text-green-600 p-2.5 rounded-full mb-1.5"><i class="ph ph-plus text-xl"></i></div>
+          <span class="text-[10px] font-semibold text-slate-700">Create</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  try {
+    // Parallel fetching for performance
+    const [clsCount, stuCount, reqCount, mats, hw] = await Promise.all([
+      db.from('classes').select('id', { count: 'exact' }),
+      db.from('class_memberships').select('student_id', { count: 'exact' }),
+      db.from('class_join_requests').select('id', { count: 'exact' }).eq('status', 'pending'),
+      db.from('materials').select('id', { count: 'exact' }),
+      db.from('homework').select('id', { count: 'exact' })
+    ]);
+
+    document.getElementById('tutor-stats').innerHTML = `
+      <div class="glass-card p-4 rounded-2xl">
+        <div class="text-blue-100 text-xs font-medium mb-1">Total Classes</div>
+        <div class="text-3xl font-bold">${clsCount.count || 0}</div>
+      </div>
+      <div class="glass-card p-4 rounded-2xl">
+        <div class="text-blue-100 text-xs font-medium mb-1">Total Students</div>
+        <div class="text-3xl font-bold">${stuCount.count || 0}</div>
+      </div>
+    `;
+
+    // Render Chart.js
+    if (State.dashboardChart) State.dashboardChart.destroy();
+    const ctx = document.getElementById('dashboardChart').getContext('2d');
+    State.dashboardChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Materials Published', 'Homework Assigned', 'Pending Requests'],
+        datasets: [{
+          data: [mats.count || 0, hw.count || 0, reqCount.count || 0],
+          backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '70%',
+        plugins: {
+          legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter' } } }
+        }
+      }
+    });
+
+  } catch (e) {
+    showToast('Failed to load dashboard data', 'error');
+  }
+}
+
+async function renderStudentDashboard() {
+  El.main.innerHTML = `
+    <div class="pt-8 px-5 pb-10 bg-gradient-to-br from-indigo-900 to-indigo-700 text-white rounded-b-3xl shadow-md relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 opacity-10"><i class="ph-fill ph-backpack text-9xl"></i></div>
+      <div class="flex justify-between items-start mb-6 relative z-10">
+        <div>
+          <p class="text-indigo-200 text-sm font-medium">Hello Student,</p>
+          <h2 class="text-2xl font-bold">${escapeHTML(State.profile.full_name)}</h2>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3 relative z-10" id="student-stats">
+        <div class="bg-white/10 p-4 rounded-2xl animate-pulse h-24"></div>
+      </div>
+    </div>
+
+    <div class="px-5 -mt-6 mb-24 slide-up relative z-20">
+      
+      <!-- Join action card -->
+      <div class="bg-white p-5 rounded-3xl shadow-lg border border-slate-100 flex items-center justify-between mb-6">
+        <div>
+          <h3 class="font-bold text-slate-800">Join a New Class</h3>
+          <p class="text-xs text-slate-500 mt-1">Get the 6-digit code from your tutor</p>
+        </div>
+        <button onclick="showJoinClassModal()" class="bg-indigo-600 text-white p-3 rounded-2xl shadow-md shadow-indigo-200 active:scale-95 transition">
+          <i class="ph ph-plus text-xl"></i>
+        </button>
+      </div>
+
+      <h3 class="font-bold text-slate-800 text-lg mb-4">Recent Homework</h3>
+      <div id="recent-homework" class="space-y-3">
+         <div class="bg-white p-4 rounded-2xl border border-slate-100 animate-pulse h-20"></div>
+      </div>
+
+    </div>
+  `;
+
+  try {
+    const [memberships, hw] = await Promise.all([
+      db.from('class_memberships').select('class_id', { count: 'exact' }).eq('student_id', State.user.id),
+      db.from('homework').select('*, classes(name)').order('created_at', { ascending: false }).limit(3)
+    ]);
+
+    document.getElementById('student-stats').innerHTML = `
+      <div class="glass-card p-4 rounded-2xl">
+        <div class="text-indigo-100 text-xs font-medium mb-1">Enrolled Classes</div>
+        <div class="text-3xl font-bold">${memberships.count || 0}</div>
+      </div>
+    `;
+
+    const hwContainer = document.getElementById('recent-homework');
+    if (hw.data && hw.data.length > 0) {
+      hwContainer.innerHTML = hw.data.map(h => `
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 items-start active:bg-slate-50 transition" onclick="renderStudentClasses()">
+          <div class="bg-orange-50 text-orange-500 p-3 rounded-xl"><i class="ph ph-notebook text-xl"></i></div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-slate-800 text-truncate">${escapeHTML(h.title)}</h4>
+            <p class="text-xs text-slate-500 text-truncate">${escapeHTML(h.classes.name)}</p>
+          </div>
+          <i class="ph ph-caret-right text-slate-300 mt-2"></i>
+        </div>
+      `).join('');
+    } else {
+      hwContainer.innerHTML = `<div class="text-center py-6 text-slate-400 bg-white rounded-2xl border border-slate-100 border-dashed"><i class="ph ph-check-circle text-3xl mb-2"></i><p class="text-sm">All caught up!</p></div>`;
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+
+// -------------------------------------------------------------
+// TUTOR: CLASSES & CONTENT
+// -------------------------------------------------------------
+async function renderTutorClasses() {
+  State.currentView = 'classes';
+  updateNav();
+  El.main.innerHTML = `
+    <div class="px-5 pt-6 pb-24 slide-up">
+      <div class="flex justify-between items-center mb-6 sticky top-0 bg-slate-50 pt-4 pb-2 z-10">
+        <h2 class="text-2xl font-extrabold text-slate-900">My Classes</h2>
+        <button onclick="showCreateClassModal()" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg font-bold text-sm shadow-sm active:bg-blue-200 transition"><i class="ph ph-plus mr-1"></i> New</button>
+      </div>
+      <div id="classes-list" class="space-y-4">
+        ${[1,2,3].map(()=>`<div class="bg-white h-28 rounded-2xl animate-pulse"></div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  try {
+    const { data, error } = await db.from('classes').select('*, class_memberships(count)').order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    const container = document.getElementById('classes-list');
+    if (!data.length) {
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-12 text-center bg-white rounded-3xl border border-slate-100 border-dashed">
+          <div class="bg-blue-50 text-blue-500 p-4 rounded-full mb-4"><i class="ph ph-books text-4xl"></i></div>
+          <h3 class="font-bold text-slate-700 mb-1">No Classes Yet</h3>
+          <p class="text-sm text-slate-500 mb-4">Create your first class to start teaching.</p>
+          <button onclick="showCreateClassModal()" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-medium shadow-md">Create Class</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = data.map(c => `
+      <div onclick="renderClassDetails('${c.id}')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 active:scale-[0.98] transition cursor-pointer relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-[100px] -z-0 transition-transform group-hover:scale-110"></div>
+        <div class="relative z-10">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-bold text-lg text-slate-800 pr-4">${escapeHTML(c.name)}</h3>
+            <div class="bg-slate-100 text-slate-700 font-mono text-xs font-bold px-2 py-1 rounded tracking-wider shrink-0">${c.class_code}</div>
+          </div>
+          <p class="text-sm text-slate-500 mb-4">${escapeHTML(c.subject || 'General')}</p>
+          <div class="flex items-center text-xs font-medium text-slate-500">
+            <i class="ph ph-users text-lg text-blue-500 mr-1.5"></i>
+            ${c.class_memberships[0].count} Students
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function showCreateClassModal() {
+  openModal('Create New Class', `
+    <form onsubmit="event.preventDefault(); createClass()" class="space-y-4 pt-2">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Class Name</label>
+        <input id="new-class-name" required placeholder="e.g. Grade 10 Science" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Subject (Optional)</label>
+        <input id="new-class-subject" placeholder="e.g. Physics" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none">
+      </div>
+      <button id="btn-create-class" type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl mt-4">Create Class</button>
+    </form>
+  `);
+}
+
+async function createClass() {
+  const name = document.getElementById('new-class-name').value.trim();
+  const subject = document.getElementById('new-class-subject').value.trim();
+  try {
+    setBtnLoading('btn-create-class', true);
+    const { error } = await db.from('classes').insert({ name, subject });
+    if (error) throw error;
+    closeModal();
+    showToast('Class created successfully');
+    renderTutorClasses();
+  } catch (e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-create-class', false);
+  }
+}
+
+async function renderClassDetails(classId) {
+  State.currentView = 'class_detail'; // Hide bottom nav active states somewhat
+  updateNav();
+  
+  El.main.innerHTML = `
+    <div class="sticky top-0 bg-white/90 backdrop-blur-md z-20 px-5 pt-4 pb-3 border-b border-slate-100 flex items-center gap-3">
+      <button onclick="renderTutorClasses()" class="p-2 bg-slate-100 text-slate-600 rounded-full active:bg-slate-200"><i class="ph ph-arrow-left text-lg"></i></button>
+      <div class="flex-1 min-w-0">
+        <h2 id="cd-title" class="text-xl font-bold text-slate-900 text-truncate">Loading...</h2>
+        <p id="cd-code" class="text-xs font-mono text-slate-500"></p>
+      </div>
+      <button onclick="promptDeleteClass('${classId}')" class="bg-red-50 text-red-600 w-10 h-10 rounded-full shadow-sm flex items-center justify-center shrink-0 hover:bg-red-100 transition"><i class="ph ph-trash text-xl"></i></button>
+      <button onclick="showPostContentModal('${classId}')" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow-md flex items-center justify-center shrink-0"><i class="ph ph-plus text-xl"></i></button>
+    </div>
+    
+    <!-- Custom Tabs -->
+    <div class="flex border-b border-slate-200 bg-white sticky top-[68px] z-10" id="class-tabs">
+      <button onclick="loadClassTab('${classId}', 'materials')" class="flex-1 py-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 text-center tab-btn" data-tab="materials">Materials</button>
+      <button onclick="loadClassTab('${classId}', 'homework')" class="flex-1 py-3 text-sm font-semibold text-slate-500 border-b-2 border-transparent text-center tab-btn" data-tab="homework">Homework</button>
+      <button onclick="loadClassTab('${classId}', 'students')" class="flex-1 py-3 text-sm font-semibold text-slate-500 border-b-2 border-transparent text-center tab-btn" data-tab="students">Students</button>
+    </div>
+
+    <div id="tab-content" class="px-5 pt-6 pb-24 min-h-[50vh] bg-slate-50">
+       <div class="flex justify-center mt-10"><i class="ph ph-spinner-gap animate-spin text-3xl text-blue-500"></i></div>
+    </div>
+  `;
+
+  try {
+    const { data: c, error } = await db.from('classes').select('*').eq('id', classId).single();
+    if (error) throw error;
+    document.getElementById('cd-title').textContent = c.name;
+    document.getElementById('cd-code').textContent = `Code: ${c.class_code}`;
+    loadClassTab(classId, 'materials');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function loadClassTab(classId, type) {
+  // Update Tab styling
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.dataset.tab === type) {
+      btn.classList.add('text-blue-600', 'border-blue-600');
+      btn.classList.remove('text-slate-500', 'border-transparent');
+    } else {
+      btn.classList.remove('text-blue-600', 'border-blue-600');
+      btn.classList.add('text-slate-500', 'border-transparent');
+    }
+  });
+
+  const content = document.getElementById('tab-content');
+  content.innerHTML = `<div class="flex justify-center mt-10"><i class="ph ph-spinner-gap animate-spin text-3xl text-blue-500"></i></div>`;
+
+  try {
+    if (type === 'students') {
+      const { data, error } = await db.from('class_memberships').select('*').eq('class_id', classId).order('approved_at', { ascending: false });
+      if (error) throw error;
+      if (!data.length) {
+        content.innerHTML = `<div class="text-center text-slate-500 mt-10"><i class="ph ph-users text-4xl mb-2 text-slate-300"></i><p>No students approved yet.</p></div>`;
+        return;
+      }
+      content.innerHTML = data.map(s => `
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-3 flex items-center gap-4">
+          <div class="w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center font-bold uppercase shrink-0">${s.student_name.charAt(0)}</div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-slate-800 text-truncate">${escapeHTML(s.student_name)}</h4>
+            <p class="text-xs text-slate-500 text-truncate">${escapeHTML(s.student_phone || 'No email')}</p>
+          </div>
+          <button onclick="promptRemoveStudent('${classId}', '${s.student_id}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"><i class="ph ph-user-minus text-xl"></i></button>
+        </div>
+      `).join('');
+    } else {
+      // Materials or Homework
+      const { data, error } = await db.from(type).select('*').eq('class_id', classId).order('created_at', { ascending: false });
+      if (error) throw error;
+      if (!data.length) {
+        content.innerHTML = `<div class="text-center text-slate-500 mt-10"><i class="ph ${type==='materials'?'ph-folder':'ph-notebook'} text-4xl mb-2 text-slate-300"></i><p>No ${type} posted yet.</p></div>`;
+        return;
+      }
+      content.innerHTML = data.map(item => `
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-4 slide-up relative group">
+          <button onclick="promptDeletePost('${classId}', '${type}', '${item.id}')" class="absolute top-4 right-4 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition opacity-100 md:opacity-0 group-hover:opacity-100"><i class="ph ph-trash text-lg"></i></button>
+          <div class="flex items-start gap-3 mb-2 pr-10">
+            <div class="bg-${type==='materials'?'blue':'orange'}-50 text-${type==='materials'?'blue':'orange'}-600 p-2 rounded-lg mt-0.5 shrink-0"><i class="ph ${type==='materials'?'ph-file-pdf':'ph-clipboard-text'} text-xl"></i></div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-slate-800 pr-2">${escapeHTML(item.title)}</h4>
+              <p class="text-[10px] font-medium text-slate-400 mt-0.5">${formatDate(item.created_at)}</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 whitespace-pre-wrap ml-12 mb-2 leading-relaxed">${escapeHTML(item.body)}</p>
+          ${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" class="ml-12 inline-flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg font-medium active:bg-blue-100"><i class="ph ph-link text-lg"></i> Open Link</a>` : ''}
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    content.innerHTML = `<div class="text-red-500 text-center">${e.message}</div>`;
+  }
+}
+
+function showPostContentModal(classId) {
+  openModal('Post to Class', `
+    <form onsubmit="event.preventDefault(); postContent('${classId}')" class="space-y-4 pt-2">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Post Type</label>
+        <div class="grid grid-cols-3 gap-2">
+           <label class="cursor-pointer">
+             <input type="radio" name="post_type" value="materials" class="peer sr-only" checked onchange="toggleLinkField()">
+             <div class="text-center p-2 rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition">Material</div>
+           </label>
+           <label class="cursor-pointer">
+             <input type="radio" name="post_type" value="homework" class="peer sr-only" onchange="toggleLinkField()">
+             <div class="text-center p-2 rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition">Homework</div>
+           </label>
+           <label class="cursor-pointer">
+             <input type="radio" name="post_type" value="notices" class="peer sr-only" onchange="toggleLinkField()">
+             <div class="text-center p-2 rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 transition">Notice</div>
+           </label>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Title</label>
+        <input id="post-title" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Details</label>
+        <textarea id="post-body" required rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none"></textarea>
+      </div>
+      <div id="link-field-container">
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Link (Optional)</label>
+        <input id="post-link" type="url" placeholder="https://" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none">
+      </div>
+      <button id="btn-post" type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md mt-4">Publish Post</button>
+    </form>
+  `);
+}
+
+function toggleLinkField() {
+  const type = document.querySelector('input[name="post_type"]:checked').value;
+  document.getElementById('link-field-container').style.display = (type === 'materials') ? 'block' : 'none';
+}
+
+async function postContent(classId) {
+  const type = document.querySelector('input[name="post_type"]:checked').value;
+  const title = document.getElementById('post-title').value.trim();
+  const body = document.getElementById('post-body').value.trim();
+  const link = (type === 'materials') ? document.getElementById('post-link').value.trim() : null;
+
+  try {
+    setBtnLoading('btn-post', true);
+    const row = { class_id: classId, title, body };
+    if (link) row.link = link;
+    const { error } = await db.from(type).insert(row);
+    if (error) throw error;
+    
+    closeModal();
+    showToast(`${type} posted successfully!`);
+    loadClassTab(classId, type === 'notices' ? 'materials' : type); // notices not a tab here directly
+  } catch (e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-post', false);
+  }
+}
+
+// -------------------------------------------------------------
+// DELETE / REMOVE ACTIONS (CRUD Enhancements)
+// -------------------------------------------------------------
+function promptDeleteClass(classId) {
+  confirmAction('Delete Class', 'Are you sure you want to delete this class? This will permanently remove all materials, homework, and students associated with it.', 'Delete Class', 'bg-red-600 hover:bg-red-700', async () => {
+    try {
+      const { error } = await db.from('classes').delete().eq('id', classId);
+      if (error) throw error;
+      showToast('Class deleted successfully.', 'success');
+      renderTutorClasses();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  });
+}
+
+function promptDeletePost(classId, type, postId) {
+  confirmAction('Delete Post', 'Are you sure you want to delete this post? This action cannot be undone.', 'Delete Post', 'bg-red-600 hover:bg-red-700', async () => {
+    try {
+      const { error } = await db.from(type).delete().eq('id', postId);
+      if (error) throw error;
+      showToast('Post deleted successfully.', 'success');
+      loadClassTab(classId, type);
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  });
+}
+
+function promptRemoveStudent(classId, studentId) {
+  confirmAction('Remove Student', 'Are you sure you want to remove this student from the class? They will lose access to all materials.', 'Remove Student', 'bg-red-600 hover:bg-red-700', async () => {
+    try {
+      const { error } = await db.from('class_memberships').delete().eq('class_id', classId).eq('student_id', studentId);
+      if (error) throw error;
+      showToast('Student removed from class.', 'success');
+      loadClassTab(classId, 'students');
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  });
+}
+
+async function renderRequests() {
+  State.currentView = 'requests';
+  updateNav();
+  El.main.innerHTML = `
+    <div class="px-5 pt-6 pb-24 slide-up">
+      <h2 class="text-2xl font-extrabold text-slate-900 mb-6 sticky top-0 bg-slate-50 pt-4 pb-2 z-10">Join Requests</h2>
+      <div id="requests-list" class="space-y-4">
+         <div class="bg-white h-24 rounded-2xl animate-pulse"></div>
+      </div>
+    </div>
+  `;
+
+  try {
+    const { data, error } = await db.from('class_join_requests').select('*, classes(name)').eq('status', 'pending').order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    const container = document.getElementById('requests-list');
+    if (!data.length) {
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+          <div class="bg-slate-100 text-slate-300 p-4 rounded-full mb-4"><i class="ph ph-bell-z text-5xl"></i></div>
+          <h3 class="font-bold text-slate-700">All clear</h3>
+          <p class="text-sm text-slate-500">No pending join requests.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = data.map(r => `
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="font-bold text-slate-800">${escapeHTML(r.student_name)}</h4>
+            <p class="text-xs text-slate-500 flex items-center gap-1"><i class="ph ph-envelope-simple"></i> ${escapeHTML(r.student_phone || 'N/A')}</p>
+            <span class="inline-block mt-2 bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">${escapeHTML(r.classes.name)}</span>
+          </div>
+          <div class="text-xs text-slate-400 font-medium">${formatDate(r.created_at)}</div>
+        </div>
+        <div class="flex gap-2 mt-1">
+          <button onclick="reviewRequest('${r.id}', 'approved', this)" class="flex-1 bg-green-50 hover:bg-green-100 text-green-700 font-bold py-2.5 rounded-xl transition text-sm">Approve</button>
+          <button onclick="reviewRequest('${r.id}', 'rejected', this)" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 rounded-xl transition text-sm">Reject</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function reviewRequest(id, status, btnEl) {
+  try {
+    const originalText = btnEl.innerHTML;
+    btnEl.innerHTML = `<i class="ph ph-spinner-gap animate-spin"></i>`;
+    btnEl.disabled = true;
+    const { error } = await db.rpc('review_join_request', { p_request_id: id, p_status: status });
+    if (error) throw error;
+    showToast(`Request ${status}`, status === 'approved' ? 'success' : 'info');
+    renderRequests();
+  } catch (e) {
+    showToast(e.message, 'error');
+    btnEl.innerHTML = originalText;
+    btnEl.disabled = false;
+  }
+}
+
+// -------------------------------------------------------------
+// STUDENT: CLASSES & CONTENT
+// -------------------------------------------------------------
+async function renderStudentClasses() {
+  State.currentView = 'classes';
+  updateNav();
+  El.main.innerHTML = `
+    <div class="px-5 pt-6 pb-24 slide-up">
+      <div class="flex justify-between items-center mb-6 sticky top-0 bg-slate-50 pt-4 pb-2 z-10">
+        <h2 class="text-2xl font-extrabold text-slate-900">My Classes</h2>
+        <button onclick="showJoinClassModal()" class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-sm active:bg-indigo-200 transition"><i class="ph ph-plus"></i></button>
+      </div>
+      <div id="stu-classes-list" class="space-y-4">
+        ${[1,2].map(()=>`<div class="bg-white h-24 rounded-2xl animate-pulse"></div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  try {
+    const { data, error } = await db.from('class_memberships').select('*, classes(*)').order('approved_at', { ascending: false });
+    if (error) throw error;
+    
+    const container = document.getElementById('stu-classes-list');
+    if (!data.length) {
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-12 text-center bg-white rounded-3xl border border-slate-100 border-dashed">
+          <div class="bg-indigo-50 text-indigo-500 p-4 rounded-full mb-4"><i class="ph ph-magnifying-glass text-4xl"></i></div>
+          <h3 class="font-bold text-slate-700 mb-1">No Classes</h3>
+          <p class="text-sm text-slate-500 mb-4">You are not enrolled in any class yet.</p>
+          <button onclick="showJoinClassModal()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-medium shadow-md">Join a Class</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = data.map(m => `
+      <div onclick="renderStudentClassDetails('${m.class_id}')" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 active:scale-[0.98] transition cursor-pointer flex items-center gap-4">
+        <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white flex items-center justify-center text-2xl shadow-inner font-bold uppercase">
+           ${m.classes.name.substring(0, 2)}
+        </div>
+        <div class="flex-1">
+          <h3 class="font-bold text-lg text-slate-800 leading-tight">${escapeHTML(m.classes.name)}</h3>
+          <p class="text-xs text-slate-500 mt-1">${escapeHTML(m.classes.subject || 'General')}</p>
+        </div>
+        <i class="ph ph-caret-right text-slate-300 text-xl"></i>
+      </div>
+    `).join('');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function showJoinClassModal() {
+  openModal('Join a Class', `
+    <form onsubmit="event.preventDefault(); joinClass()" class="space-y-4 pt-2">
+      <p class="text-sm text-slate-500 mb-4">Enter the 6-character code provided by your tutor.</p>
+      <div>
+        <input id="join-code" required maxlength="6" placeholder="e.g. AB12CD" autocapitalize="characters" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-500 outline-none text-center text-2xl font-mono font-bold tracking-widest uppercase">
+      </div>
+      <button id="btn-join" type="submit" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-md mt-2">Send Request</button>
+    </form>
+  `);
+}
+
+async function joinClass() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!/^[A-Z0-9]{6}$/.test(code)) return showToast('Code must be 6 characters.', 'error');
+  try {
+    setBtnLoading('btn-join', true);
+    const { error } = await db.rpc('request_join_by_code', { p_class_code: code });
+    if (error) throw error;
+    closeModal();
+    showToast('Join request sent to tutor!', 'success');
+  } catch (e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-join', false);
+  }
+}
+
+async function renderStudentClassDetails(classId) {
+  State.currentView = 'class_detail';
+  updateNav();
+  
+  El.main.innerHTML = `
+    <div class="sticky top-0 bg-white/90 backdrop-blur-md z-20 px-5 pt-4 pb-3 border-b border-slate-100 flex items-center gap-3">
+      <button onclick="renderStudentClasses()" class="p-2 bg-slate-100 text-slate-600 rounded-full active:bg-slate-200"><i class="ph ph-arrow-left text-lg"></i></button>
+      <div class="flex-1 min-w-0">
+        <h2 id="scd-title" class="text-xl font-bold text-slate-900 text-truncate">Loading...</h2>
+      </div>
+      <button onclick="promptLeaveClass('${classId}')" class="bg-slate-100 text-slate-600 w-10 h-10 rounded-full shadow-sm flex items-center justify-center shrink-0 hover:bg-red-50 hover:text-red-600 transition" title="Leave Class"><i class="ph ph-sign-out text-xl"></i></button>
+    </div>
+    
+    <div class="flex border-b border-slate-200 bg-white sticky top-[68px] z-10">
+      <button onclick="loadStudentClassTab('${classId}', 'materials')" class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 text-center s-tab-btn" data-tab="materials">Materials</button>
+      <button onclick="loadStudentClassTab('${classId}', 'homework')" class="flex-1 py-3 text-sm font-semibold text-slate-500 border-b-2 border-transparent text-center s-tab-btn" data-tab="homework">Homework</button>
+      <button onclick="loadStudentClassTab('${classId}', 'notices')" class="flex-1 py-3 text-sm font-semibold text-slate-500 border-b-2 border-transparent text-center s-tab-btn" data-tab="notices">Notices</button>
+    </div>
+
+    <div id="stu-tab-content" class="px-5 pt-6 pb-24 min-h-[50vh] bg-slate-50">
+       <div class="flex justify-center mt-10"><i class="ph ph-spinner-gap animate-spin text-3xl text-indigo-500"></i></div>
+    </div>
+  `;
+
+  try {
+    const { data: c, error } = await db.from('classes').select('name').eq('id', classId).single();
+    if (error) throw error;
+    document.getElementById('scd-title').textContent = c.name;
+    loadStudentClassTab(classId, 'materials');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function promptLeaveClass(classId) {
+  confirmAction('Leave Class', 'Are you sure you want to leave this class? You will no longer receive updates or have access to materials.', 'Leave Class', 'bg-red-600 hover:bg-red-700', async () => {
+    try {
+      const { error } = await db.from('class_memberships').delete().eq('class_id', classId).eq('student_id', State.user.id);
+      if (error) throw error;
+      showToast('You have left the class.', 'success');
+      renderStudentClasses();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  });
+}
+
+async function loadStudentClassTab(classId, type) {
+  document.querySelectorAll('.s-tab-btn').forEach(btn => {
+    if (btn.dataset.tab === type) {
+      btn.classList.add('text-indigo-600', 'border-indigo-600');
+      btn.classList.remove('text-slate-500', 'border-transparent');
+    } else {
+      btn.classList.remove('text-indigo-600', 'border-indigo-600');
+      btn.classList.add('text-slate-500', 'border-transparent');
+    }
+  });
+
+  const content = document.getElementById('stu-tab-content');
+  content.innerHTML = `<div class="flex justify-center mt-10"><i class="ph ph-spinner-gap animate-spin text-3xl text-indigo-500"></i></div>`;
+
+  try {
+    const { data, error } = await db.from(type).select('*').eq('class_id', classId).order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    if (!data.length) {
+      const icons = { materials: 'ph-folder-open', homework: 'ph-notebook', notices: 'ph-megaphone' };
+      content.innerHTML = `<div class="text-center text-slate-500 mt-12"><i class="ph ${icons[type]} text-5xl mb-3 text-slate-300"></i><p>No ${type} posted yet.</p></div>`;
+      return;
+    }
+    
+    const iconColors = { materials: 'blue', homework: 'orange', notices: 'red' };
+    const iconNames = { materials: 'ph-file-pdf', homework: 'ph-clipboard-text', notices: 'ph-megaphone' };
+    const c = iconColors[type];
+    const icn = iconNames[type];
+
+    content.innerHTML = data.map(item => `
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-4 slide-up">
+        <div class="flex items-start gap-4 mb-3">
+          <div class="bg-${c}-50 text-${c}-600 p-3 rounded-2xl"><i class="${icn} text-2xl"></i></div>
+          <div class="flex-1 mt-1">
+            <h4 class="font-bold text-slate-800 text-lg leading-tight">${escapeHTML(item.title)}</h4>
+            <p class="text-xs font-medium text-slate-400 mt-1">${formatDate(item.created_at)}</p>
+          </div>
+        </div>
+        <div class="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed bg-slate-50 p-4 rounded-2xl">${escapeHTML(item.body)}</div>
+        ${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" class="mt-3 block text-center w-full bg-${c}-50 text-${c}-700 py-3 rounded-xl font-bold active:bg-${c}-100 transition"><i class="ph ph-link-simple text-lg align-text-bottom mr-1"></i> Open Attachment</a>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    content.innerHTML = `<div class="text-red-500 text-center">${e.message}</div>`;
+  }
+}
+
+// -------------------------------------------------------------
+// PROFILE LOGIC
+// -------------------------------------------------------------
+function renderProfile() {
+  State.currentView = 'profile';
+  updateNav();
+  
+  El.main.innerHTML = `
+    <div class="px-5 pt-10 pb-24 slide-up h-full flex flex-col">
+      <h2 class="text-3xl font-extrabold text-slate-900 mb-8">Settings</h2>
+      
+      <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 flex flex-col items-center text-center relative">
+        <button onclick="showEditProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-blue-600 transition bg-slate-50 p-2 rounded-full shadow-sm border border-slate-100">
+           <i class="ph ph-pencil-simple text-lg"></i>
+        </button>
+        <div class="w-20 h-20 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center text-3xl font-bold uppercase mb-4 shadow-inner">
+          ${State.profile.full_name.charAt(0)}
+        </div>
+        <h3 class="text-xl font-bold text-slate-900">${escapeHTML(State.profile.full_name)}</h3>
+        <p class="text-sm text-slate-500 mb-1">${escapeHTML(State.profile.phone || State.user.email)}</p>
+        <div class="mt-2 inline-block bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">${State.profile.role}</div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+         <div class="p-4 border-b border-slate-100 flex items-center gap-3 text-slate-700">
+           <i class="ph ph-info text-xl text-slate-400"></i>
+           <span class="font-medium text-sm">App Version 2.0.0</span>
+         </div>
+         <div class="p-4 flex items-center gap-3 text-slate-700">
+           <i class="ph ph-shield-check text-xl text-slate-400"></i>
+           <span class="font-medium text-sm">Secured by Supabase</span>
+         </div>
+      </div>
+      
+      <div class="mt-auto">
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 font-bold py-4 rounded-2xl active:bg-red-100 transition">
+          <i class="ph ph-sign-out text-xl"></i> Log Out
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// -------------------------------------------------------------
+// NEW FEATURE LOGIC: EDIT PROFILE & TUTOR STUDENTS VIEW
+// -------------------------------------------------------------
+
+function showEditProfileModal() {
+  openModal('Edit Profile', `
+    <form onsubmit="event.preventDefault(); updateProfile()" class="space-y-4 pt-2">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+        <input id="edit-name" required value="${escapeHTML(State.profile.full_name)}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Phone / Contact Email</label>
+        <input id="edit-phone" value="${escapeHTML(State.profile.phone || '')}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none">
+      </div>
+      <button id="btn-update-profile" type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md mt-4">Save Changes</button>
+    </form>
+  `);
+}
+
+async function updateProfile() {
+  const full_name = document.getElementById('edit-name').value.trim();
+  const phone = document.getElementById('edit-phone').value.trim();
+  try {
+    setBtnLoading('btn-update-profile', true);
+    const { error } = await db.from('profiles').update({ full_name, phone }).eq('id', State.user.id);
+    if (error) throw error;
+    
+    await loadProfile(); // Reload global state
+    closeModal();
+    showToast('Profile updated successfully!', 'success');
+    renderProfile(); // Refresh UI
+  } catch(e) {
+    showToast(e.message, 'error');
+    setBtnLoading('btn-update-profile', false);
+  }
+}
+
+async function renderTutorStudents() {
+  State.currentView = 'students';
+  updateNav();
+  
+  El.main.innerHTML = `
+    <div class="px-5 pt-6 pb-24 slide-up">
+      <div class="flex justify-between items-center mb-6 sticky top-0 bg-slate-50 pt-4 pb-2 z-10">
+        <h2 class="text-2xl font-extrabold text-slate-900">All Students</h2>
+      </div>
+      <div id="all-students-list" class="space-y-4">
+        ${[1,2,3].map(()=>`<div class="bg-white h-24 rounded-2xl animate-pulse"></div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  try {
+    // 1. Fetch tutor's classes
+    const { data: myClasses, error: clsErr } = await db.from('classes').select('id, name');
+    if (clsErr) throw clsErr;
+
+    if (!myClasses || myClasses.length === 0) {
+      document.getElementById('all-students-list').innerHTML = `<div class="text-center text-slate-500 mt-10">No classes found.</div>`;
+      return;
+    }
+
+    // 2. Fetch memberships for all tutor's classes
+    const classIds = myClasses.map(c => c.id);
+    const { data: memberships, error: memErr } = await db.from('class_memberships')
+      .select('student_id, student_name, student_phone, class_id')
+      .in('class_id', classIds);
+    
+    if (memErr) throw memErr;
+
+    // 3. Group memberships by student ID
+    const studentsMap = {};
+    memberships.forEach(m => {
+      if (!studentsMap[m.student_id]) {
+        studentsMap[m.student_id] = {
+          id: m.student_id,
+          name: m.student_name,
+          phone: m.student_phone,
+          classes: []
+        };
+      }
+      const cls = myClasses.find(c => c.id === m.class_id);
+      if (cls) {
+        studentsMap[m.student_id].classes.push(cls.name);
+      }
+    });
+
+    // 4. Convert to array and sort alphabetically
+    const studentsList = Object.values(studentsMap).sort((a,b) => a.name.localeCompare(b.name));
+    const container = document.getElementById('all-students-list');
+    
+    if (!studentsList.length) {
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-12 text-center bg-white rounded-3xl border border-slate-100 border-dashed">
+          <div class="bg-purple-50 text-purple-500 p-4 rounded-full mb-4"><i class="ph ph-users text-4xl"></i></div>
+          <h3 class="font-bold text-slate-700 mb-1">No Students Yet</h3>
+          <p class="text-sm text-slate-500">Students will appear here once they join your classes.</p>
+        </div>`;
+      return;
+    }
+
+    // 5. Render Students List
+    container.innerHTML = studentsList.map(s => `
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl font-bold uppercase shrink-0">
+             ${s.name.charAt(0)}
+          </div>
+          <div class="min-w-0">
+            <h4 class="font-bold text-slate-800 text-truncate">${escapeHTML(s.name)}</h4>
+            <p class="text-xs text-slate-500 flex items-center gap-1 text-truncate mt-0.5">
+               <i class="ph ph-address-book"></i> ${escapeHTML(s.phone || 'No contact info')}
+            </p>
+          </div>
+        </div>
+        <div class="mt-1 pt-3 border-t border-slate-50">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Enrolled In</p>
+          <div class="flex flex-wrap gap-1.5">
+            ${s.classes.map(c => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs px-2 py-1 rounded-lg font-medium">${escapeHTML(c)}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+     showToast(e.message, 'error');
+     document.getElementById('all-students-list').innerHTML = `<div class="text-red-500 text-center">${e.message}</div>`;
+  }
+}
+
+// -------------------------------------------------------------
+// INITIALIZATION BOOT
+// -------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+  boot();
+});
+
+</script>
+</body>
+</html>
