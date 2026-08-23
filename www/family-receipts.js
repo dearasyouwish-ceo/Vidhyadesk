@@ -1,0 +1,8 @@
+/* Family receipts and installment helpers for VidyaDesk. */
+window.VidyaFamily=(()=>{
+ async function members(db,instituteId,guardianMobile){const {data,error}=await db.from('students').select('*').eq('institute_id',instituteId).eq('mobile',guardianMobile).order('full_name');if(error)throw error;return data||[]}
+ async function outstanding(db,instituteId,studentIds){if(!studentIds.length)return[];const{data,error}=await db.from('fee_bills').select('*').eq('institute_id',instituteId).in('student_id',studentIds).in('status',['unpaid','partial']);if(error)throw error;return data||[]}
+ function receiptPayload(students,bills,payments){const total=bills.reduce((n,b)=>n+Number(b.net_amount||0),0);const paid=payments.reduce((n,p)=>n+Number(p.amount||0),0);return {students,bills,payments,total,paid,balance:Math.max(0,total-paid),generatedAt:new Date().toISOString()}}
+ async function installmentPlan(db,{instituteId,billId,amounts,dueDates}){if(amounts.length!==dueDates.length)throw Error('Installment amount/date count mismatch');await db.from('fee_installments').delete().eq('bill_id',billId);const rows=amounts.map((amount,i)=>({institute_id:instituteId,bill_id:billId,installment_no:i+1,amount:Number(amount),due_date:dueDates[i],status:'unpaid'}));const{data,error}=await db.from('fee_installments').insert(rows).select();if(error)throw error;return data}
+ return {members,outstanding,receiptPayload,installmentPlan};
+})();
