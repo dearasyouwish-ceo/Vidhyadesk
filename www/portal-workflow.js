@@ -1,0 +1,8 @@
+window.VidyaPortal=(()=>{
+ async function assignedBatches(db,teacherId){const{data,error}=await db.from('teacher_batch_assignments').select('batch_id,batches(*)').eq('teacher_id',teacherId).eq('status','active');if(error)throw error;return data||[]}
+ async function studentOverview(db,studentId){const [fees,attendance,results,progress]=await Promise.all([db.from('fee_bills').select('*').eq('student_id',studentId),db.from('attendance').select('*').eq('student_id',studentId).order('attendance_date',{ascending:false}).limit(30),db.from('exam_marks').select('*').eq('student_id',studentId),db.from('lesson_progress').select('*').eq('student_id',studentId)]);for(const r of [fees,attendance,results,progress])if(r.error)throw r.error;return{fees:fees.data||[],attendance:attendance.data||[],results:results.data||[],progress:progress.data||[]}}
+ async function parentChildren(db,parentId){const{data,error}=await db.from('parent_student_links').select('student_id,students(*)').eq('parent_id',parentId).eq('status','active');if(error)throw error;return data||[]}
+ async function timetable(db,{instituteId,batchId,weekday}){let q=db.from('timetable').select('*').eq('institute_id',instituteId).eq('batch_id',batchId);if(weekday!==undefined)q=q.eq('weekday',weekday);const{data,error}=await q.order('start_time');if(error)throw error;return data||[]}
+ async function homework(db,{instituteId,batchId,from,to}){let q=db.from('homework').select('*').eq('institute_id',instituteId).eq('batch_id',batchId);if(from)q=q.gte('assigned_date',from);if(to)q=q.lte('assigned_date',to);const{data,error}=await q.order('assigned_date',{ascending:false});if(error)throw error;return data||[]}
+ return{assignedBatches,studentOverview,parentChildren,timetable,homework};
+})();
