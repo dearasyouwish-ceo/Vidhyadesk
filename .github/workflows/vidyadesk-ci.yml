@@ -4,8 +4,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+permissions:
+  contents: read
 jobs:
-  syntax:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,3 +32,13 @@ jobs:
           test -f PRODUCTION_RELEASE.md
           test -f www/index.html
           test -f www/app.js
+          test -f www/release-gate.js
+          test -f www/smoke-test.js
+      - name: Guard client assets
+        shell: bash
+        run: |
+          set -e
+          if grep -RniE 'service_role|SUPABASE_SERVICE_ROLE_KEY' www --include='*.js' --include='*.html'; then
+            echo 'Service-role secret detected in client assets'
+            exit 1
+          fi
